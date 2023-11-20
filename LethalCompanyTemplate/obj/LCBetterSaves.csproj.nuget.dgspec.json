@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Paul\\Desktop\\LethalCompanyMod\\LethalCompanyTemplate\\LethalCompanyTemplate\\LCBetterSaves.csproj": {}
+    "C:\\Users\\Paul\\Desktop\\LethalCompanyMod\\LCBetterSaves\\LethalCompanyTemplate\\LCBetterSaves.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Paul\\Desktop\\LethalCompanyMod\\LethalCompanyTemplate\\LethalCompanyTemplate\\LCBetterSaves.csproj": {
+    "C:\\Users\\Paul\\Desktop\\LethalCompanyMod\\LCBetterSaves\\LethalCompanyTemplate\\LCBetterSaves.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Paul\\Desktop\\LethalCompanyMod\\LethalCompanyTemplate\\LethalCompanyTemplate\\LCBetterSaves.csproj",
+        "projectUniqueName": "C:\\Users\\Paul\\Desktop\\LethalCompanyMod\\LCBetterSaves\\LethalCompanyTemplate\\LCBetterSaves.csproj",
         "projectName": "LCBetterSaves",
-        "projectPath": "C:\\Users\\Paul\\Desktop\\LethalCompanyMod\\LethalCompanyTemplate\\LethalCompanyTemplate\\LCBetterSaves.csproj",
+        "projectPath": "C:\\Users\\Paul\\Desktop\\LethalCompanyMod\\LCBetterSaves\\LethalCompanyTemplate\\LCBetterSaves.csproj",
         "packagesPath": "C:\\Users\\Paul\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Paul\\Desktop\\LethalCompanyMod\\LethalCompanyTemplate\\LethalCompanyTemplate\\obj\\",
+        "outputPath": "C:\\Users\\Paul\\Desktop\\LethalCompanyMod\\LCBetterSaves\\LethalCompanyTemplate\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

@@ -1,6 +1,8 @@
 ﻿using BepInEx;
 using HarmonyLib;
+using JetBrains.Annotations;
 using LCBetterSaves;
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -37,62 +39,112 @@ namespace LCBetterSaves
 
         public static void InitializeBetterSaves(MenuManager __instance)
         {
-            // Relabel the top of the save files box with the plugin name & version
-            GameObject panelLabel = GameObject.Find("Canvas/MenuContainer/LobbyHostSettings/FilesPanel/EnterAName");
-            panelLabel.GetComponent<TextMeshProUGUI>().text = "BetterSaves " + PluginInfo.PLUGIN_VERSION;
-
-            // Steal the values from the old DeleteFileButton
-            GameObject deleteFileGO = GameObject.Find("Canvas/MenuContainer/DeleteFileConfirmation/Panel/Delete");
-            if (deleteFileGO != null)
+            try
             {
-                DeleteFileButton oldDeleteFileButton = deleteFileGO.GetComponent<DeleteFileButton>();
-                
-                // Steal the deleteFileSFX if it's not already set
-                if (deleteFileSFX == null)
+                // Relabel the top of the save files box with the plugin name & version
+                GameObject panelLabel = GameObject.Find("Canvas/MenuContainer/LobbyHostSettings/FilesPanel/EnterAName");
+                if (panelLabel != null)
                 {
-                    deleteFileSFX = oldDeleteFileButton.deleteFileSFX;
+                    panelLabel.GetComponent<TextMeshProUGUI>().text = "BetterSaves";
+                }
+                else
+                {
+                    Debug.LogError("Panel label not found.");
                 }
 
-                // Steal the deleteFileText if it's not already set
-                if (deleteFileText == null)
+                // Steal the values from the old DeleteFileButton
+                GameObject deleteFileGO = GameObject.Find("Canvas/MenuContainer/DeleteFileConfirmation/Panel/Delete");
+                if (deleteFileGO != null)
                 {
-                    deleteFileText = oldDeleteFileButton.deleteFileText;
+                    DeleteFileButton oldDeleteFileButton = deleteFileGO.GetComponent<DeleteFileButton>();
+
+                    // Steal the deleteFileSFX if it's not already set
+                    if (deleteFileSFX == null)
+                    {
+                        deleteFileSFX = oldDeleteFileButton.deleteFileSFX;
+                    }
+
+                    // Steal the deleteFileText if it's not already set
+                    if (deleteFileText == null)
+                    {
+                        deleteFileText = oldDeleteFileButton.deleteFileText;
+                    }
+
+                    // Get rid of the old DeleteFileButton component
+                    Destroy(oldDeleteFileButton);
+                }
+                else
+                {
+                    Debug.LogError("Delete file game object not found.");
                 }
 
-                // Get rid of the old DeleteFileButton component
-                Destroy(oldDeleteFileButton);
-            }
+                // Create the modded DeleteFileButton component
+                if (deleteFileGO != null && deleteFileGO.GetComponent<DeleteFileButton_BetterSaves>() == null)
+                {
+                    DeleteFileButton_BetterSaves deleteButton = deleteFileGO.AddComponent<DeleteFileButton_BetterSaves>();
+                    deleteButton.deleteFileSFX = deleteFileSFX;
+                    deleteButton.deleteFileText = deleteFileText;
 
-            // Create the modded DeleteFileButton component
-            if (deleteFileGO.GetComponent<DeleteFileButton_BetterSaves>() == null)
+                    // Update the button's onClick event
+                    Button deleteButtonComponent = deleteFileGO.GetComponent<Button>();
+                    if (deleteButtonComponent != null)
+                    {
+                        deleteButtonComponent.onClick.RemoveAllListeners();
+                        deleteButtonComponent.onClick.AddListener(deleteButton.DeleteFile);
+                    }
+                    else
+                    {
+                        Debug.LogError("Button component not found on deleteFileGO");
+                    }
+                }
+                else if (deleteFileGO != null)
+                {
+                    Debug.LogWarning("DeleteFileButton_BetterSaves component already exists on deleteFileGO");
+                }
+
+                // Show the original file node
+                GameObject originalFileNode = GameObject.Find("Canvas/MenuContainer/LobbyHostSettings/FilesPanel/File1");
+                if (originalFileNode != null)
+                {
+                    originalFileNode.SetActive(true);
+                }
+                else
+                {
+                    Debug.LogError("Original file node not found");
+                }
+
+                // Refresh the save buttons
+                // Get the number of saves to help position the newFileSlot
+                RefreshSaveButtons();
+
+                // Remove all the old save buttons
+                DestroyOriginalSaveButtons();
+
+                // Hide the original file node
+                if (originalFileNode != null)
+                {
+                    originalFileNode.SetActive(false);
+                }
+                else
+                {
+                    Debug.LogError("Original file node not found");
+                }
+
+                NewFileUISlot_BetterSaves newFileSlot = FindObjectOfType<NewFileUISlot_BetterSaves>();
+                // Set the new file node as the selected file
+                if (newFileSlot != null)
+                {
+                    newFileSlot.SetFileToThis();
+                }
+                else
+                {
+                    Debug.LogError("New file button not found");
+                }
+            }
+            catch (Exception ex)
             {
-                DeleteFileButton_BetterSaves deleteButton = deleteFileGO.AddComponent<DeleteFileButton_BetterSaves>();
-                deleteButton.deleteFileSFX = deleteFileSFX;
-                deleteButton.deleteFileText = deleteFileText;
-
-                // Update the button's onClick event
-                deleteFileGO.GetComponent<Button>().onClick.RemoveAllListeners();
-                deleteFileGO.GetComponent<Button>().onClick.AddListener(deleteButton.DeleteFile);
+                Debug.LogError("An error occurred during initialization: " + ex.Message);
             }
-
-            // Show the original file node
-            GameObject originalFileNode = GameObject.Find("Canvas/MenuContainer/LobbyHostSettings/FilesPanel/File1");
-            originalFileNode.SetActive(true);
-
-            // Create the new file node
-            NewFileUISlot_BetterSaves newFileSlot = CreateNewFileNode();
-
-            // Refresh the save buttons
-            RefreshSaveButtons();
-
-            // Remove all the old save buttons
-            DestroyOriginalSaveButtons();
-
-            // Hide the original file node
-            originalFileNode.SetActive(false);
-
-            // Set the new file node as the selected file
-            FindObjectOfType<NewFileUISlot_BetterSaves>().SetFileToThis();
         }
 
 
@@ -144,7 +196,9 @@ namespace LCBetterSaves
             return newFiles;
         }
 
-        public static NewFileUISlot_BetterSaves CreateNewFileNode()
+        public static float buttonBaseY;
+
+        public static NewFileUISlot_BetterSaves CreateNewFileNode(int numSaves)
         {
             GameObject originalFileNode = GameObject.Find("Canvas/MenuContainer/LobbyHostSettings/FilesPanel/File1");
 
@@ -157,27 +211,88 @@ namespace LCBetterSaves
             Transform parent = originalFileNode.transform.parent;
 
             // Sanitize the original of old code
-            if (originalFileNode.GetComponent<SaveFileUISlot>() != null)
+            SaveFileUISlot saveFileUISlot = originalFileNode.GetComponent<SaveFileUISlot>();
+            if (saveFileUISlot != null)
             {
-                Destroy(originalFileNode.GetComponent<SaveFileUISlot>());
+                Destroy(saveFileUISlot);
             }
 
-            GameObject clone = Instantiate(originalFileNode, parent);
+            GameObject clone = GameObject.Find("Canvas/MenuContainer/LobbyHostSettings/FilesPanel/NewFile");
+            if (clone == null)
+            {
+                clone = Instantiate(originalFileNode, parent);
+            }
+
+            if (clone == null)
+            {
+                Debug.LogError("Failed to instantiate the clone.");
+                return null;
+            }
+
             clone.name = "NewFile";
             clone.SetActive(true);
-            clone.transform.GetChild(1).GetComponent<TMP_Text>().text = "New File";
+            TMP_Text textComponent = clone.transform.GetChild(1).GetComponent<TMP_Text>();
+            if (textComponent != null)
+            {
+                textComponent.text = "New File";
+            }
+            else
+            {
+                Debug.LogError("Text component not found.");
+                return null;
+            }
 
             // Add our replacement component
             NewFileUISlot_BetterSaves newFileSlot = clone.AddComponent<NewFileUISlot_BetterSaves>();
+            if (newFileSlot == null)
+            {
+                Debug.LogError("Failed to add NewFileUISlot_BetterSaves component.");
+                return null;
+            }
 
             // Destroy the DeleteFileButton
-            Destroy(clone.transform.GetChild(3).gameObject);
+            Transform deleteButton = clone.transform.GetChild(3);
+            if (deleteButton != null)
+            {
+                Destroy(deleteButton.gameObject);
+            }
+            else
+            {
+                Debug.LogError("Delete button not found.");
+                return null;
+            }
+
+            // Reposition
+            try
+            {
+                RectTransform rectTransform = clone.GetComponent<RectTransform>();
+                if (rectTransform != null)
+                {
+                    float x = rectTransform.anchoredPosition.x;
+                    if (buttonBaseY == 0f) {
+                        buttonBaseY = rectTransform.anchoredPosition.y - (rectTransform.sizeDelta.y * 1.75f);
+                    }
+                    float y = buttonBaseY + (rectTransform.sizeDelta.y * numSaves / 2);
+                    
+                    rectTransform.anchoredPosition = new Vector2(x, y);
+                }
+                else
+                {
+                    Debug.LogError("RectTransform component not found.");
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError("Error setting anchored position: " + ex.Message);
+                return null;
+            }
 
             return newFileSlot;
         }
 
         // Instantiate a Node based on the original File1 GO
-        public static void CreateModdedSaveNode(int fileIndex, int listIndex)
+        public static void CreateModdedSaveNode(int fileIndex, int listIndex, GameObject newFileButton)
         {
             // fileIndex is the number tracked by the save file name
             // fileNum is the display for fileIndex
@@ -222,8 +337,10 @@ namespace LCBetterSaves
             RectTransform rectTransform = clone.GetComponent<RectTransform>();
             if (rectTransform != null)
             {
-                Vector2 size = rectTransform.sizeDelta;
-                rectTransform.anchoredPosition += new Vector2(0, (-size.y * (listIndex + 1)));
+                float x = rectTransform.anchoredPosition.x;
+                float baseY = newFileButton.GetComponent<RectTransform>().anchoredPosition.y;
+                float y = baseY - (rectTransform.sizeDelta.y * fileNum);
+                rectTransform.anchoredPosition = new Vector2(x, y);
             }
 
             // Replace the functionality of the delete button with the one we want
@@ -243,33 +360,95 @@ namespace LCBetterSaves
 
         public static void RefreshSaveButtons()
         {
-            DestroyBetterSaveButtons();
-
-            // If save file names aren't in perfect numerical order, we remedy that here.
-            List<string> saveFiles = NormalizeFileNames();
-
-            // A new save file would be created at [0, 1, 2] - index 3 - there are 3 items
-            newSaveFileNum = saveFiles.Count;
-
-            menuManager.filesCompatible = new bool[16];
-
-            for (int i = 0; i < menuManager.filesCompatible.Length; i++)
+            try
             {
-                menuManager.filesCompatible[i] = true;
+                int numSaves = 0;
+                // Calculate number of saves so we can position newFileSlot correctly
+                foreach (string file in ES3.GetFiles())
+                {
+                    if (ES3.FileExists(file) && file.StartsWith("LCSaveFile"))
+                    {
+                        numSaves++;
+                    }
+                }
+
+                Debug.Log("Positioning based on " + numSaves + " saves.");
+
+                // Create the new file node
+                NewFileUISlot_BetterSaves newFileSlot = CreateNewFileNode(numSaves);
+
+                DestroyBetterSaveButtons();
+
+                // If save file names aren't in perfect numerical order, we remedy that here.
+                List<string> saveFiles = NormalizeFileNames();
+
+                // A new save file would be created at [0, 1, 2] - index 3 - there are 3 items
+                newSaveFileNum = saveFiles.Count;
+
+                menuManager.filesCompatible = new bool[16];
+
+                for (int i = 0; i < menuManager.filesCompatible.Length; i++)
+                {
+                    menuManager.filesCompatible[i] = true;
+                }
+
+                // "File N" buttons, which allow selecting existing files.
+                for (int i = 0; i < saveFiles.Count; i++)
+                {
+                    CreateModdedSaveNode(int.Parse(saveFiles[i].Replace("LCSaveFile", "")), i, newFileSlot.gameObject);
+                }
+
+                UpdateFilesPanelRect(saveFiles.Count);
             }
-
-            // "File N" buttons, which allow selecting existing files.
-            for (int i = 0; i < saveFiles.Count; i++)
+            catch (Exception ex)
             {
-                CreateModdedSaveNode(int.Parse(saveFiles[i].Replace("LCSaveFile", "")), i);
+                Debug.LogError("Error occurred while refreshing save buttons: " + ex.Message);
             }
         }
 
         public static void DestroyBetterSaveButtons()
         {
-            foreach(SaveFileUISlot_BetterSaves f in FindObjectsOfType<SaveFileUISlot_BetterSaves>())
+            try
             {
-                Destroy(f.gameObject);
+                foreach (SaveFileUISlot_BetterSaves f in FindObjectsOfType<SaveFileUISlot_BetterSaves>())
+                {
+                    Destroy(f.gameObject);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError("Error occurred while destroying better save buttons: " + ex.Message);
+            }
+        }
+
+        public static void UpdateFilesPanelRect(int numSaves)
+        {
+            try
+            {
+                RectTransform rect = GameObject.Find("Canvas/MenuContainer/LobbyHostSettings/FilesPanel")?.GetComponent<RectTransform>();
+
+                if (rect == null)
+                {
+                    throw new Exception("Failed to find FilesPanel RectTransform.");
+                }
+
+                Vector2 sizeDelta = rect.sizeDelta;
+
+                RectTransform file1Rect = GameObject.Find("Canvas/MenuContainer/LobbyHostSettings/FilesPanel/File1")?.GetComponent<RectTransform>();
+
+                if (file1Rect == null)
+                {
+                    throw new Exception("Failed to find File1 RectTransform.");
+                }
+
+                float fileSlotHeight = file1Rect.sizeDelta.y;
+                sizeDelta.y = fileSlotHeight * (numSaves + 3);
+
+                rect.sizeDelta = sizeDelta;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError("Error occurred while updating files panel rect: " + ex.Message);
             }
         }
     }
@@ -417,10 +596,10 @@ public class DeleteFileButton_BetterSaves : MonoBehaviour
             }
         }
 
-        FindObjectOfType<NewFileUISlot_BetterSaves>().SetFileToThis();
-
         Destroy(GameObject.Find($"Canvas/MenuContainer/LobbyHostSettings/FilesPanel/File{fileToDelete + 1}_BetterSaves"));
 
         Plugin.RefreshSaveButtons();
+
+        FindObjectOfType<NewFileUISlot_BetterSaves>().SetFileToThis();
     }
 }

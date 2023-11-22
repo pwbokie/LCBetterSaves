@@ -1,12 +1,12 @@
 ﻿using BepInEx;
 using HarmonyLib;
-using JetBrains.Annotations;
+using LC_API.BundleAPI;
 using LCBetterSaves;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace LCBetterSaves
@@ -15,10 +15,12 @@ namespace LCBetterSaves
     public class Plugin : BaseUnityPlugin
     {
         private Harmony _harmony = new Harmony("BetterSaves");
-        public static int fileToDelete = -1;
+        public static int fileToModify = -1;
         public static int newSaveFileNum;
 
-        private void Awake()
+        public static Sprite renameSprite;
+
+        public void Awake()
         {
             // Plugin startup logic
             _harmony.PatchAll(typeof(Plugin));
@@ -38,6 +40,9 @@ namespace LCBetterSaves
         {
             try
             {
+                Texture2D renameTexture = BundleLoader.GetLoadedAsset<Texture2D>("assets/RenameSprite.png");
+                renameSprite = Sprite.Create(renameTexture, new Rect(0, 0, renameTexture.width, renameTexture.height), new Vector2(0.5f, 0.5f));
+
                 // Destroy everything (except File1) so we can start over
                 DestroyBetterSavesButtons();
                 DestroyOriginalSaveButtons();
@@ -390,7 +395,13 @@ namespace LCBetterSaves
             // Clone the GameObject
             GameObject clone = Instantiate(originalFileNode, parent);
             clone.name = "File" + fileNum + "_BetterSaves";
-            clone.transform.GetChild(1).GetComponent<TMP_Text>().text = "File " + fileNum;
+
+            // Try and load the save file's Alias
+            string alias = ES3.Load<string>("Alias_BetterSaves", "LCSaveFile" + fileIndex, "");
+            if (alias == "")
+                clone.transform.GetChild(1).GetComponent<TMP_Text>().text = "File " + fileNum; 
+            else
+                clone.transform.GetChild(1).GetComponent<TMP_Text>().text = alias;
 
             // Add our replacement component
             clone.AddComponent<SaveFileUISlot_BetterSaves>();
@@ -425,6 +436,57 @@ namespace LCBetterSaves
             fileDeleteButton.gameObject.GetComponent<Button>().onClick.AddListener(deleteButton.UpdateFileToDelete);
 
             fileDeleteButton.SetActive(false);
+
+            // Create the rename file button
+            slot.renameButton = CreateRenameFileButton(clone);
+        }
+
+        public static GameObject CreateRenameFileButton(GameObject fileNode)
+        {
+            try
+            {
+                GameObject deleteButton = fileNode.transform.GetChild(3).gameObject;
+
+                GameObject renameButton = Instantiate(deleteButton, fileNode.transform);
+                renameButton.name = "RenameButton";
+                renameButton.GetComponent<Image>().sprite = renameSprite;
+
+                // Remove the delete functionality from the button
+                Button renameButtonComponent = renameButton.GetComponent<Button>();
+                renameButtonComponent.onClick = new Button.ButtonClickedEvent();
+
+                // Add the rename class to the button
+                renameButton.AddComponent<RenameFileButton_BetterSaves>();
+                RenameFileButton_BetterSaves renameButtonScript = renameButton.GetComponent<RenameFileButton_BetterSaves>();
+
+                if (renameButtonScript != null)
+                {
+                    renameButtonComponent.onClick.AddListener(renameButtonScript.RenameFile);
+                }
+                else
+                {
+                    Debug.LogError("RenameFileButton_BetterSaves component not found on renameButton");
+                }
+
+                // Reposition the rename button
+                RectTransform rectTransform = renameButton.GetComponent<RectTransform>();
+
+                if (rectTransform != null)
+                {
+                    float x = rectTransform.localPosition.x + 20;
+                    float y = rectTransform.localPosition.y;
+                    rectTransform.localPosition = new Vector2(x, y);
+                }
+
+                renameButton.SetActive(false);
+
+                return renameButton;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError("Error occurred while creating rename file button: " + ex.Message);
+                return null;
+            }
         }
 
         public static void UpdateFilesPanelRect(int numSaves)
@@ -455,6 +517,20 @@ namespace LCBetterSaves
             catch (Exception ex)
             {
                 Debug.LogError("Error occurred while updating files panel rect: " + ex.Message);
+            }
+        }
+
+        public static void RefreshNameFields()
+        {
+            SaveFileUISlot_BetterSaves[] saveFileSlots = GameObject.FindObjectsOfType<SaveFileUISlot_BetterSaves>();
+
+            foreach (SaveFileUISlot_BetterSaves saveFileSlot in saveFileSlots)
+            {
+                string alias = ES3.Load("Alias_BetterSaves", saveFileSlot.fileString, "");
+                if (alias == "")
+                    saveFileSlot.transform.GetChild(1).GetComponent<TMP_Text>().text = "File " + (saveFileSlot.fileNum + 1);
+                else
+                    saveFileSlot.transform.GetChild(1).GetComponent<TMP_Text>().text = alias;
             }
         }
     }
@@ -490,6 +566,7 @@ public class NewFileUISlot_BetterSaves : MonoBehaviour
         {
             slot.SetButtonColor();
             slot.deleteButton.SetActive(false);
+            slot.renameButton.SetActive(false);
         }
     }
 
@@ -508,6 +585,7 @@ public class SaveFileUISlot_BetterSaves : MonoBehaviour
     public string fileString;
     public TextMeshProUGUI fileNotCompatibleAlert;
     public GameObject deleteButton;
+    public GameObject renameButton;
 
     public void Awake()
     {
@@ -562,7 +640,7 @@ public class SaveFileUISlot_BetterSaves : MonoBehaviour
 
     public void SetFileToThis()
     {
-        Plugin.fileToDelete = fileNum;
+        Plugin.fileToModify = fileNum;
 
         GameNetworkManager.Instance.currentSaveFileName = fileString;
         GameNetworkManager.Instance.saveFileNum = fileNum;
@@ -576,11 +654,30 @@ public class SaveFileUISlot_BetterSaves : MonoBehaviour
         {
             slot.SetButtonColor();
             slot.deleteButton.SetActive(slot == this);
+            slot.renameButton.SetActive(slot == this);
         }
 
         NewFileUISlot_BetterSaves newFileButton = FindObjectOfType<NewFileUISlot_BetterSaves>();
         newFileButton.isSelected = false;
         newFileButton.SetButtonColor();
+    }
+}
+
+public class RenameFileButton_BetterSaves : MonoBehaviour
+{
+    public void RenameFile()
+    {
+        string filePath = $"LCSaveFile{Plugin.fileToModify}";
+        string alias = GameObject.Find("Canvas/MenuContainer/LobbyHostSettings/Panel/LobbyHostOptions/OptionsNormal/ServerNameField/Text Area/Text")
+            .GetComponent<TMP_Text>().text;
+        
+        if (ES3.FileExists(filePath))
+        {
+            ES3.Save("Alias_BetterSaves", alias, filePath);
+            Debug.Log("Granted alias " +  alias + " to file " + filePath);
+        }
+
+        Plugin.RefreshNameFields();
     }
 }
 
@@ -592,8 +689,14 @@ public class DeleteFileButton_BetterSaves : MonoBehaviour
 
     public void UpdateFileToDelete()
     {
-        fileToDelete = Plugin.fileToDelete;
-        deleteFileText.text = $"Do you want to delete File {fileToDelete + 1}?";
+        fileToDelete = Plugin.fileToModify;
+        if (ES3.Load("Alias_BetterSaves", $"LCSaveFile{fileToDelete}", "") != "") {
+            deleteFileText.text = $"Do you want to delete file ({ES3.Load("Alias_BetterSaves", $"LCSaveFile{fileToDelete}", "")})?";
+        }
+        else
+        {
+            deleteFileText.text = $"Do you want to delete File {fileToDelete + 1}?";
+        }
     }
 
     public void DeleteFile()
@@ -616,8 +719,6 @@ public class DeleteFileButton_BetterSaves : MonoBehaviour
                 FindObjectOfType<MenuManager>().filesCompatible[fileToDelete] = true;
             }
         }
-
-        Destroy(GameObject.Find($"Canvas/MenuContainer/LobbyHostSettings/FilesPanel/File{fileToDelete + 1}_BetterSaves"));
 
         Plugin.InitializeBetterSaves();
     }

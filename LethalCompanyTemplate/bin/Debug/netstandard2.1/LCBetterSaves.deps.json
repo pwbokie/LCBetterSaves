@@ -7,7 +7,7 @@
   "targets": {
     ".NETStandard,Version=v2.1": {},
     ".NETStandard,Version=v2.1/": {
-      "LCBetterSaves/1.3.0": {
+      "LCBetterSaves/1.4.0": {
         "dependencies": {
           "BepInEx.Analyzers": "1.0.8",
           "BepInEx.Core": "5.4.21",
@@ -15,7 +15,6 @@
           "UnityEngine.Modules": "2022.3.9",
           "Assembly-CSharp-firstpass": "0.0.0.0",
           "Assembly-CSharp": "0.0.0.0",
-          "LC_API": "1.0.0.0",
           "Unity.TextMeshPro": "0.0.0.0",
           "UnityEngine.UI": "1.0.0.0"
         },
@@ -373,14 +372,6 @@
           }
         }
       },
-      "LC_API/1.0.0.0": {
-        "runtime": {
-          "LC_API.dll": {
-            "assemblyVersion": "1.0.0.0",
-            "fileVersion": "1.0.0.0"
-          }
-        }
-      },
       "Unity.TextMeshPro/0.0.0.0": {
         "runtime": {
           "Unity.TextMeshPro.dll": {
@@ -656,7 +647,7 @@
     }
   },
   "libraries": {
-    "LCBetterSaves/1.3.0": {
+    "LCBetterSaves/1.4.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -933,11 +924,6 @@
       "sha512": ""
     },
     "Assembly-CSharp/0.0.0.0": {
-      "type": "reference",
-      "serviceable": false,
-      "sha512": ""
-    },
-    "LC_API/1.0.0.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""

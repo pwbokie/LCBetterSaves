@@ -1,12 +1,10 @@
 ﻿using BepInEx;
 using HarmonyLib;
-using LC_API.BundleAPI;
 using LCBetterSaves;
 using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace LCBetterSaves
@@ -33,6 +31,14 @@ namespace LCBetterSaves
         public static void Postfix(MenuManager __instance)
         {
             menuManager = __instance;
+
+            if (renameSprite == null)
+            {
+                AssetBundle assetBundle = AssetBundle.LoadFromMemory(Properties.Resources.lcbettersaves);
+                Texture2D renameTexture = assetBundle.LoadAsset<Texture2D>("Assets/RenameSprite.png");
+                renameSprite = Sprite.Create(renameTexture, new Rect(0, 0, renameTexture.width, renameTexture.height), new Vector2(0.5f, 0.5f));
+            }
+
             InitializeBetterSaves();
         }
 
@@ -40,8 +46,6 @@ namespace LCBetterSaves
         {
             try
             {
-                Texture2D renameTexture = BundleLoader.GetLoadedAsset<Texture2D>("assets/RenameSprite.png");
-                renameSprite = Sprite.Create(renameTexture, new Rect(0, 0, renameTexture.width, renameTexture.height), new Vector2(0.5f, 0.5f));
 
                 // Destroy everything (except File1) so we can start over
                 DestroyBetterSavesButtons();

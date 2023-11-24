@@ -96,4 +96,5 @@ C:\Users\Paul\Desktop\LethalCompanyMod\LCBetterSaves\LethalCompanyTemplate\obj\D
 C:\Users\Paul\Desktop\LethalCompanyMod\LCBetterSaves\LethalCompanyTemplate\obj\Debug\netstandard2.1\LCBetterSaves.csproj.CopyComplete
 C:\Users\Paul\Desktop\LethalCompanyMod\LCBetterSaves\LethalCompanyTemplate\obj\Debug\netstandard2.1\LCBetterSaves.dll
 C:\Users\Paul\Desktop\LethalCompanyMod\LCBetterSaves\LethalCompanyTemplate\obj\Debug\netstandard2.1\LCBetterSaves.pdb
-C:\Users\Paul\Desktop\LethalCompanyMod\LCBetterSaves\LethalCompanyTemplate\bin\Debug\netstandard2.1\LC_API.dll
+C:\Users\Paul\Desktop\LethalCompanyMod\LCBetterSaves\LethalCompanyTemplate\obj\Debug\netstandard2.1\LCBetterSaves.Properties.Resources.resources
+C:\Users\Paul\Desktop\LethalCompanyMod\LCBetterSaves\LethalCompanyTemplate\obj\Debug\netstandard2.1\LCBetterSaves.csproj.GenerateResource.cache

@@ -334,7 +334,6 @@ namespace LCBetterSaves
             // Retrieve and filter the save files
             List<string> saveFiles = new List<string>();
             List<string> lguFiles = new List<string>();
-            bool usingLgu = false;
             foreach (string file in ES3.GetFiles())
             {
                 if (ES3.FileExists(file) && file.StartsWith("LCSaveFile"))
@@ -344,7 +343,6 @@ namespace LCBetterSaves
                 }
                 if(ES3.FileExists(file) && file.StartsWith("LGU"))
                 {
-                    usingLgu = true;
                     Debug.Log("Found LGU file: " + file);
                     lguFiles.Add(file);
                 }

@@ -1,4 +1,4 @@
-﻿using BepInEx;
+using BepInEx;
 using HarmonyLib;
 using LCBetterSaves;
 using System;
@@ -114,7 +114,7 @@ namespace LCBetterSaves
 
         public static AudioClip deleteFileSFX;
         public static TextMeshProUGUI deleteFileText;
-        
+
         public static void CreateModdedDeleteFileButton()
         {
             // Find the old DeleteFileButton
@@ -179,7 +179,7 @@ namespace LCBetterSaves
                 Debug.LogWarning("DeleteFileButton_BetterSaves component already exists on deleteFileGO");
             }
         }
-        
+
         // Refreshes the save buttons based on the existing save files
         public static void CreateBetterSaveButtons()
         {
@@ -333,12 +333,23 @@ namespace LCBetterSaves
         {
             // Retrieve and filter the save files
             List<string> saveFiles = new List<string>();
+            List<string> lguFiles = new List<string>();
             foreach (string file in ES3.GetFiles())
             {
                 if (ES3.FileExists(file) && file.StartsWith("LCSaveFile"))
                 {
                     Debug.Log("Found file: " + file);
                     saveFiles.Add(file);
+                }
+                if(ES3.FileExists(file) && file.StartsWith("LGU"))
+                {
+                    Debug.Log("Found LGU file: " + file);
+                    lguFiles.Add(file);
+                }
+                else if (ES3.FileExists(file) && file.StartsWith("LCSaveFile"))
+                {
+                    // add a placeholder to maintain the index relationship between vanilla and lgu files.
+                    lguFiles.Add.Add("placeholder");
                 }
             }
 
@@ -347,6 +358,20 @@ namespace LCBetterSaves
             foreach (string file in saveFiles)
             {
                 string tempName = "TempFile" + tempIndex.ToString();
+                ES3.RenameFile(file, tempName);
+                Debug.Log($"Renamed {file} to {tempName}");
+                tempIndex++;
+            }
+            // Handle any LGU files
+            tempIndex = 0;
+            foreach (string file in lguFiles)
+            {
+                if(file == "placeholder") // if they exist
+                { 
+                    tempIndex++;
+                    continue; 
+                }
+                string tempName = "LGUTempFile" + tempIndex.ToString();
                 ES3.RenameFile(file, tempName);
                 Debug.Log($"Renamed {file} to {tempName}");
                 tempIndex++;
@@ -373,7 +398,31 @@ namespace LCBetterSaves
 
                 fileIndex++;
             }
+            fileIndex = 0;
+            List<string> newLGUFiles = new List<string>();
+            foreach (string file in lguFiles)
+            {
+                string oldTempName = "LGUTempFile" + fileIndex.ToString();
+                string newName = "LGU_" + fileIndex.ToString();
+                if(file == "placeholder")
+                {
+                    fileIndex++;
+                    continue;
+                }
 
+                if (ES3.FileExists(oldTempName))
+                {
+                    ES3.RenameFile(oldTempName, newName); // Rename the file to the new format
+                    newFiles.Add(newName);
+                    Debug.Log($"Renamed {oldTempName} to {newName}");
+                }
+                else
+                {
+                    Debug.Log($"Temporary file {oldTempName} not found. It might have been moved or deleted.");
+                }
+
+                fileIndex++;
+            }
             return newFiles;
         }
 
@@ -403,7 +452,7 @@ namespace LCBetterSaves
             // Try and load the save file's Alias
             string alias = ES3.Load<string>("Alias_BetterSaves", "LCSaveFile" + fileIndex, "");
             if (alias == "")
-                clone.transform.GetChild(1).GetComponent<TMP_Text>().text = "File " + fileNum; 
+                clone.transform.GetChild(1).GetComponent<TMP_Text>().text = "File " + fileNum;
             else
                 clone.transform.GetChild(1).GetComponent<TMP_Text>().text = alias;
 
@@ -674,11 +723,11 @@ public class RenameFileButton_BetterSaves : MonoBehaviour
         string filePath = $"LCSaveFile{Plugin.fileToModify}";
         string alias = GameObject.Find("Canvas/MenuContainer/LobbyHostSettings/Panel/LobbyHostOptions/OptionsNormal/ServerNameField/Text Area/Text")
             .GetComponent<TMP_Text>().text;
-        
+
         if (ES3.FileExists(filePath))
         {
             ES3.Save("Alias_BetterSaves", alias, filePath);
-            Debug.Log("Granted alias " +  alias + " to file " + filePath);
+            Debug.Log("Granted alias " + alias + " to file " + filePath);
         }
 
         Plugin.RefreshNameFields();
@@ -694,7 +743,8 @@ public class DeleteFileButton_BetterSaves : MonoBehaviour
     public void UpdateFileToDelete()
     {
         fileToDelete = Plugin.fileToModify;
-        if (ES3.Load("Alias_BetterSaves", $"LCSaveFile{fileToDelete}", "") != "") {
+        if (ES3.Load("Alias_BetterSaves", $"LCSaveFile{fileToDelete}", "") != "")
+        {
             deleteFileText.text = $"Do you want to delete file ({ES3.Load("Alias_BetterSaves", $"LCSaveFile{fileToDelete}", "")})?";
         }
         else

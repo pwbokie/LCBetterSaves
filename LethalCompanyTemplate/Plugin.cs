@@ -349,7 +349,7 @@ namespace LCBetterSaves
                 else if (ES3.FileExists(file) && file.StartsWith("LCSaveFile"))
                 {
                     // add a placeholder to maintain the index relationship between vanilla and lgu files.
-                    lguFiles.Add.Add("placeholder");
+                    lguFiles.Add("placeholder");
                 }
             }
 

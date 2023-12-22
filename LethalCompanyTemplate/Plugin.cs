@@ -334,22 +334,30 @@ namespace LCBetterSaves
             // Retrieve and filter the save files
             List<string> saveFiles = new List<string>();
             List<string> lguFiles = new List<string>();
+            string lguPlaceHolder = "PH";
+            string lguTemporaryFileFormat = "LGUTempFile{0}";
+            string lguFileFormat = "LGU_{0}.json";
             foreach (string file in ES3.GetFiles())
             {
-                if (ES3.FileExists(file) && file.StartsWith("LCSaveFile"))
+                if (!ES3.FileExists(file)) continue; // It doesn't exist
+
+                if (file.StartsWith("LCSaveFile"))
                 {
                     Debug.Log("Found file: " + file);
                     saveFiles.Add(file);
-                }
-                if(ES3.FileExists(file) && file.StartsWith("LGU"))
-                {
-                    Debug.Log("Found LGU file: " + file);
-                    lguFiles.Add(file);
-                }
-                else if (ES3.FileExists(file) && file.StartsWith("LCSaveFile"))
-                {
-                    // add a placeholder to maintain the index relationship between vanilla and lgu files.
-                    lguFiles.Add("placeholder");
+
+                    // We can do this because we have LCSaveFile##, if we had LCSaveFile##whatever, this doesn't work
+                    string linkedLGU = string.Format(lguFileFormat, file.Substring("LCSaveFile".Length));
+                    if (ES3.FileExists(linkedLGU))
+                    {
+                        Debug.Log("Found LGU file: " + linkedLGU);
+                        lguFiles.Add(linkedLGU);
+                    }
+                    else
+                    {
+                        // add a placeholder to maintain the index relationship between vanilla and lgu files.
+                        lguFiles.Add(lguPlaceHolder);
+                    }
                 }
             }
 
@@ -366,12 +374,12 @@ namespace LCBetterSaves
             tempIndex = 0;
             foreach (string file in lguFiles)
             {
-                if(file == "placeholder") // if they exist
+                if(file == lguPlaceHolder) // if they exist
                 { 
                     tempIndex++;
                     continue; 
                 }
-                string tempName = "LGUTempFile" + tempIndex.ToString();
+                string tempName = string.Format(lguTemporaryFileFormat, tempIndex.ToString());
                 ES3.RenameFile(file, tempName);
                 Debug.Log($"Renamed {file} to {tempName}");
                 tempIndex++;
@@ -399,12 +407,11 @@ namespace LCBetterSaves
                 fileIndex++;
             }
             fileIndex = 0;
-            List<string> newLGUFiles = new List<string>();
             foreach (string file in lguFiles)
             {
-                string oldTempName = "LGUTempFile" + fileIndex.ToString();
-                string newName = "LGU_" + fileIndex.ToString();
-                if(file == "placeholder")
+                string oldTempName = string.Format(lguTemporaryFileFormat, fileIndex.ToString());
+                string newName = string.Format(lguFileFormat, fileIndex.ToString());
+                if(file == lguPlaceHolder)
                 {
                     fileIndex++;
                     continue;

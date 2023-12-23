@@ -5,7 +5,7 @@
   },
   "projects": {
     "C:\\Users\\Paul\\Desktop\\LethalCompanyMod\\LCBetterSaves\\LethalCompanyTemplate\\LCBetterSaves.csproj": {
-      "version": "1.5.0",
+      "version": "1.6.0",
       "restore": {
         "projectUniqueName": "C:\\Users\\Paul\\Desktop\\LethalCompanyMod\\LCBetterSaves\\LethalCompanyTemplate\\LCBetterSaves.csproj",
         "projectName": "LCBetterSaves",
@@ -17,7 +17,6 @@
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Paul\\Desktop\\LethalCompanyMod\\LCBetterSaves\\LethalCompanyTemplate\\NuGet.Config",
           "C:\\Users\\Paul\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"

@@ -1,4 +1,4 @@
-using BepInEx;
+﻿using BepInEx;
 using HarmonyLib;
 using LCBetterSaves;
 using System;
@@ -46,7 +46,6 @@ namespace LCBetterSaves
         {
             try
             {
-
                 // Destroy everything (except File1) so we can start over
                 DestroyBetterSavesButtons();
                 DestroyOriginalSaveButtons();
@@ -62,19 +61,6 @@ namespace LCBetterSaves
 
                 // Update the size of the files panel
                 UpdateFilesPanelRect(CountSaveFiles());
-
-                /*
-                NewFileUISlot_BetterSaves newFileSlot = FindObjectOfType<NewFileUISlot_BetterSaves>();
-                // Set the new file node as the selected file
-                if (newFileSlot != null)
-                {
-                    newFileSlot.SetFileToThis();
-                }
-                else
-                {
-                    Debug.LogError("New file button not found");
-                }
-                */
             }
             catch (Exception ex)
             {
@@ -200,7 +186,7 @@ namespace LCBetterSaves
                 List<string> saveFiles = NormalizeFileNames();
 
                 // Update the number of the new save file
-                newSaveFileNum = saveFiles.Count;
+                newSaveFileNum = saveFiles.Count + 1;
 
                 // Set all files as compatible
                 menuManager.filesCompatible = new bool[16];
@@ -213,7 +199,7 @@ namespace LCBetterSaves
                 // This is dependent on an existing NewFileSlot being present
                 for (int i = 0; i < saveFiles.Count; i++)
                 {
-                    CreateModdedSaveNode(int.Parse(saveFiles[i].Replace("LCSaveFile", "")), i, newFileSlot.gameObject);
+                    CreateModdedSaveNode(int.Parse(saveFiles[i].Replace("LCSaveFile", "")), newFileSlot.gameObject);
                 }
 
                 originalFileNode.SetActive(false);
@@ -334,9 +320,11 @@ namespace LCBetterSaves
             // Retrieve and filter the save files
             List<string> saveFiles = new List<string>();
             List<string> lguFiles = new List<string>();
+
             string lguPlaceHolder = "PH";
             string lguTemporaryFileFormat = "LGUTempFile{0}";
             string lguFileFormat = "LGU_{0}.json";
+
             foreach (string file in ES3.GetFiles())
             {
                 if (!ES3.FileExists(file)) continue; // It doesn't exist
@@ -362,7 +350,7 @@ namespace LCBetterSaves
             }
 
             // Rename all files to temporary names
-            int tempIndex = 0;
+            int tempIndex = 1;
             foreach (string file in saveFiles)
             {
                 string tempName = "TempFile" + tempIndex.ToString();
@@ -370,11 +358,12 @@ namespace LCBetterSaves
                 Debug.Log($"Renamed {file} to {tempName}");
                 tempIndex++;
             }
+
             // Handle any LGU files
-            tempIndex = 0;
+            tempIndex = 1;
             foreach (string file in lguFiles)
             {
-                if(file == lguPlaceHolder) // if they exist
+                if (file == lguPlaceHolder) // if they exist
                 { 
                     tempIndex++;
                     continue; 
@@ -386,7 +375,7 @@ namespace LCBetterSaves
             }
 
             // Rename temporary files to normalized names
-            int fileIndex = 0;
+            int fileIndex = 1;
             List<string> newFiles = new List<string>();
             foreach (string file in saveFiles)
             {
@@ -406,7 +395,9 @@ namespace LCBetterSaves
 
                 fileIndex++;
             }
-            fileIndex = 0;
+
+            // Rename LGU tempfiles to normalized names
+            fileIndex = 1;
             foreach (string file in lguFiles)
             {
                 string oldTempName = string.Format(lguTemporaryFileFormat, fileIndex.ToString());
@@ -434,12 +425,9 @@ namespace LCBetterSaves
         }
 
         // Instantiate a Node based on the original File1 GO
-        public static void CreateModdedSaveNode(int fileIndex, int listIndex, GameObject newFileButton)
+        public static void CreateModdedSaveNode(int fileNum, GameObject newFileButton)
         {
-            // fileIndex is the number tracked by the save file name
-            // fileNum is the display for fileIndex
-            // listIndex is the # save file in the list of saves we made
-            int fileNum = fileIndex + 1;
+            // fileNum is the number at the end of the file name, not the index of the file
 
             // Find the original GameObject
             GameObject originalFileNode = GameObject.Find("Canvas/MenuContainer/LobbyHostSettings/FilesPanel/File1");
@@ -457,7 +445,7 @@ namespace LCBetterSaves
             clone.name = "File" + fileNum + "_BetterSaves";
 
             // Try and load the save file's Alias
-            string alias = ES3.Load<string>("Alias_BetterSaves", "LCSaveFile" + fileIndex, "");
+            string alias = ES3.Load<string>("Alias_BetterSaves", "LCSaveFile" + fileNum, "");
             if (alias == "")
                 clone.transform.GetChild(1).GetComponent<TMP_Text>().text = "File " + fileNum;
             else
@@ -470,8 +458,8 @@ namespace LCBetterSaves
             SaveFileUISlot_BetterSaves slot = clone.GetComponent<SaveFileUISlot_BetterSaves>();
             if (slot != null)
             {
-                slot.fileNum = fileIndex;
-                slot.fileString = "LCSaveFile" + fileIndex;
+                slot.fileNum = fileNum;
+                slot.fileString = "LCSaveFile" + fileNum;
             }
             else
             {

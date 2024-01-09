@@ -60,7 +60,12 @@ namespace LCBetterSaves
                 CreateBetterSaveButtons();
 
                 // Update the size of the files panel
-                UpdateFilesPanelRect(CountSaveFiles());
+                // Also updates the position of the weekly run button
+                UpdateFilesPanelRect(CountSaveFiles() + 1);
+
+                // Disable the original File1 node, in case it didn't happen when it was supposed to
+                GameObject originalFileNode = GameObject.Find("Canvas/MenuContainer/LobbyHostSettings/FilesPanel/File1");
+                originalFileNode.SetActive(false);
             }
             catch (Exception ex)
             {
@@ -275,7 +280,7 @@ namespace LCBetterSaves
                     {
                         buttonBaseY = rectTransform.anchoredPosition.y - (rectTransform.sizeDelta.y * 1.75f);
                     }
-                    float y = buttonBaseY + (rectTransform.sizeDelta.y * numSaves / 2);
+                    float y = buttonBaseY + (rectTransform.sizeDelta.y * (numSaves + 1) / 2);
 
                     rectTransform.anchoredPosition = new Vector2(x, y);
                 }
@@ -561,6 +566,17 @@ namespace LCBetterSaves
                 sizeDelta.y = fileSlotHeight * (numSaves + 3);
 
                 rect.sizeDelta = sizeDelta;
+
+                // Reposition the weekly run button
+                GameObject weeklyRunButton = GameObject.Find("Canvas/MenuContainer/LobbyHostSettings/FilesPanel/ChallengeMoonButton");
+                RectTransform weeklyRunRect = weeklyRunButton.GetComponent<RectTransform>();
+                if (weeklyRunRect != null)
+                {
+                    weeklyRunRect.anchorMin = new Vector2(0.5f, 0.05f);
+                    weeklyRunRect.anchorMax = new Vector2(0.5f, 0.05f);
+                    weeklyRunRect.pivot = new Vector2(0.5f, 0.05f);
+                    weeklyRunRect.anchoredPosition = new Vector2(0f, 0f);
+                }
             }
             catch (Exception ex)
             {

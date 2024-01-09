@@ -7,7 +7,7 @@
   "targets": {
     ".NETStandard,Version=v2.1": {},
     ".NETStandard,Version=v2.1/": {
-      "LCBetterSaves/1.6.0": {
+      "LCBetterSaves/1.7.0": {
         "dependencies": {
           "BepInEx.Analyzers": "1.0.8",
           "BepInEx.Core": "5.4.21",
@@ -404,6 +404,14 @@
           }
         }
       },
+      "Facepunch.Steamworks.Win64/1.0.0.0": {
+        "runtime": {
+          "Facepunch.Steamworks.Win64.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
       "Unity.InputSystem/1.7.0.0": {
         "runtime": {
           "Unity.InputSystem.dll": {
@@ -425,14 +433,6 @@
           "Unity.RenderPipelines.Core.Runtime.dll": {
             "assemblyVersion": "0.0.0.0",
             "fileVersion": "0.0.0.0"
-          }
-        }
-      },
-      "Facepunch.Steamworks.Win64/1.0.0.0": {
-        "runtime": {
-          "Facepunch.Steamworks.Win64.dll": {
-            "assemblyVersion": "1.0.0.0",
-            "fileVersion": "1.0.0.0"
           }
         }
       },
@@ -647,7 +647,7 @@
     }
   },
   "libraries": {
-    "LCBetterSaves/1.6.0": {
+    "LCBetterSaves/1.7.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -948,6 +948,11 @@
       "serviceable": false,
       "sha512": ""
     },
+    "Facepunch.Steamworks.Win64/1.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
     "Unity.InputSystem/1.7.0.0": {
       "type": "reference",
       "serviceable": false,
@@ -959,11 +964,6 @@
       "sha512": ""
     },
     "Unity.RenderPipelines.Core.Runtime/0.0.0.0": {
-      "type": "reference",
-      "serviceable": false,
-      "sha512": ""
-    },
-    "Facepunch.Steamworks.Win64/1.0.0.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""

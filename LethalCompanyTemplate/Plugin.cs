@@ -3,6 +3,7 @@ using HarmonyLib;
 using LCBetterSaves;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -353,6 +354,14 @@ namespace LCBetterSaves
                     }
                 }
             }
+
+            // Sort the saveFiles list in numerical order
+            saveFiles.Sort((a, b) =>
+            {
+                int fileNumA = int.Parse(a.Substring("LCSaveFile".Length));
+                int fileNumB = int.Parse(b.Substring("LCSaveFile".Length));
+                return fileNumA.CompareTo(fileNumB);
+            });
 
             // Rename all files to temporary names
             int tempIndex = 1;
@@ -732,7 +741,7 @@ public class RenameFileButton_BetterSaves : MonoBehaviour
     public void RenameFile()
     {
         string filePath = $"LCSaveFile{Plugin.fileToModify}";
-        string alias = GameObject.Find("Canvas/MenuContainer/LobbyHostSettings/Panel/LobbyHostOptions/OptionsNormal/ServerNameField/Text Area/Text")
+        string alias = GameObject.Find("Canvas/MenuContainer/LobbyHostSettings/HostSettingsContainer/LobbyHostOptions/OptionsNormal/ServerNameField/Text Area/Text")
             .GetComponent<TMP_Text>().text;
 
         if (ES3.FileExists(filePath))
@@ -782,6 +791,12 @@ public class DeleteFileButton_BetterSaves : MonoBehaviour
             {
                 slot.fileNotCompatibleAlert.enabled = false;
                 FindObjectOfType<MenuManager>().filesCompatible[fileToDelete] = true;
+
+                if (ES3.FileExists($"LGU_{fileToDelete}.json"))
+                {
+                    Debug.Log($"Deleting LGU file located at {filePath}");
+                    ES3.DeleteFile($"LGU_{fileToDelete}.json");
+                }
             }
         }
 

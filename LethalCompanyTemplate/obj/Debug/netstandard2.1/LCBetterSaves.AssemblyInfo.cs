@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute("Better save files for Lethal Company")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.7.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.7.0+a0a5af6572af6a6dc9a5c2304c96ac1ba5c0defe")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.7.0+bc6b3c1e6594b34f9290c63661711307c8f99eb1")]
 [assembly: System.Reflection.AssemblyProductAttribute("LCBetterSaves")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LCBetterSaves")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.7.0.0")]

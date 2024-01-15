@@ -2688,7 +2688,7 @@
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
-    "version": "1.7.0",
+    "version": "1.7.1",
     "restore": {
       "projectUniqueName": "C:\\Users\\Paul\\Desktop\\LethalCompanyMod\\LCBetterSaves\\LethalCompanyTemplate\\LCBetterSaves.csproj",
       "projectName": "LCBetterSaves",

@@ -43,4 +43,3 @@ Lethal Company uses Easy Save 3 (henceforth ES3) to save and load savefiles. You
 - You should now have the capacity to reference the ES3 class (https://docs.moodkie.com/easy-save-3/es3-api/es3-class/).
 - You can use ES3.Save("Tag_Name", data, filePath) to write your data directly into the savefile, and you can access it with ES3.Load("Tag_Name", filePath, defaultValue). Make sure you use a Tag_Name unique to your mod - for example, for my mod FartLizards, I might do something like "FartLizards_Data".
 - For more complicated objects, I would recommend converting to and from a json file and writing that to the save file.
-- 

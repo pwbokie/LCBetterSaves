@@ -7,7 +7,7 @@
   "targets": {
     ".NETStandard,Version=v2.1": {},
     ".NETStandard,Version=v2.1/": {
-      "LCBetterSaves/1.7.2": {
+      "LCBetterSaves/1.7.3": {
         "dependencies": {
           "BepInEx.Analyzers": "1.0.8",
           "BepInEx.Core": "5.4.21",
@@ -647,7 +647,7 @@
     }
   },
   "libraries": {
-    "LCBetterSaves/1.7.2": {
+    "LCBetterSaves/1.7.3": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

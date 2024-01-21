@@ -4,6 +4,7 @@ using LCBetterSaves;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -306,7 +307,7 @@ namespace LCBetterSaves
             int numSaves = 0;
             foreach (string file in ES3.GetFiles())
             {
-                if (ES3.FileExists(file) && file.StartsWith("LCSaveFile"))
+                if (ES3.FileExists(file) && Regex.IsMatch(file, @"^LCSaveFile\d+$"))
                 {
                     numSaves++;
                 }
@@ -335,7 +336,7 @@ namespace LCBetterSaves
             {
                 if (!ES3.FileExists(file)) continue; // It doesn't exist
 
-                if (file.StartsWith("LCSaveFile"))
+                if (Regex.IsMatch(file, @"^LCSaveFile\d+$"))
                 {
                     Debug.Log("Found file: " + file);
                     saveFiles.Add(file);
